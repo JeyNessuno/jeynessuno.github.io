@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en" >
+
+<head>
+
+  <meta charset="UTF-8">
+  
+
+  <title>Orologio a blocchi</title>
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/5.0.0/normalize.min.css">
+
+  
+  
+<style>
+html {
+  box-sizing: border-box;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: inherit;
+}
+
+body {
+  background: #2f3241;
+  min-height: 100vh;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 50px;
+  transition: background 400ms;
+}
+body[data-theme=light] {
+  background: #e0e0e0;
+}
+body[data-theme=dark] {
+  background: #2f3241;
+}
+
+.theme-toggle {
+  display: flex;
+  align-items: center;
+  position: fixed;
+  top: 5%;
+  right: 5%;
+  background: transparent;
+  border: none;
+  height: 40px;
+  width: 40px;
+  border-radius: 50px;
+  outline: none;
+  border: 2px solid;
+  cursor: pointer;
+  transition: color 400ms;
+}
+[data-theme=light] .theme-toggle {
+  color: #bebfc6;
+}
+[data-theme=light] .theme-toggle:hover {
+  color: rgba(0, 0, 0, 0.6);
+}
+[data-theme=dark] .theme-toggle {
+  color: rgba(0, 0, 0, 0.6);
+}
+[data-theme=dark] .theme-toggle:hover {
+  color: #e0e0e0;
+}
+
+.theme-toggle__icon {
+  height: 24px;
+  width: 24px;
+  position: absolute;
+  fill: currentcolor;
+}
+[data-state=dark] .theme-toggle__icon.--light {
+  transform: scale(0);
+  opacity: 0;
+  transition: fill 400ms, transform 400ms ease-out, opacity 400ms ease-out;
+}
+[data-state=light] .theme-toggle__icon.--light {
+  transform: scale(1);
+  opacity: 1;
+  transition: fill 400ms, transform 400ms ease-in, opacity 400ms ease-in;
+}
+.theme-toggle__icon.--dark {
+  transform: translateX(0);
+}
+[data-state=light] .theme-toggle__icon.--dark {
+  transform: scale(0);
+  opacity: 0;
+  transition: fill 400ms, transform 400ms ease-out, opacity 400ms ease-out;
+}
+[data-state=dark] .theme-toggle__icon.--dark {
+  transform: scale(1);
+  opacity: 1;
+  transition: fill 400ms, transform 400ms ease-in, opacity 400ms ease-in;
+}
+
+.ticker__block {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  height: 50px;
+  position: relative;
+}
+
+.ticker__box {
+  height: 50px;
+  position: relative;
+}
+.ticker__box::before, .ticker__box::after {
+  content: "";
+  display: block;
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  bottom: 5px;
+  left: 5px;
+  border-radius: 4px;
+  transition: opacity 400ms;
+  z-index: 1;
+}
+.ticker__box::before {
+  background-color: rgba(200, 206, 239, 0.1);
+  box-shadow: 0 0 10px rgba(200, 206, 239, 0.05);
+}
+.ticker__box::after {
+  background-color: rgba(85, 86, 94, 0.1);
+  box-shadow: 0 0 10px rgba(85, 86, 94, 0.05);
+}
+[data-theme=dark] .ticker__box::before {
+  opacity: 1;
+}
+[data-theme=dark] .ticker__box::after {
+  opacity: 0;
+}
+[data-theme=light] .ticker__box::before {
+  opacity: 0;
+}
+[data-theme=light] .ticker__box::after {
+  opacity: 1;
+}
+
+.ticker {
+  height: auto;
+  width: 50px;
+  transform: translateY(var(--offset));
+  will-change: transform;
+  transition: transform 800ms;
+}
+.ticker::before, .ticker::after {
+  content: "";
+  display: block;
+  border-radius: 8px;
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: -1;
+  transition: opacity 400ms;
+}
+.ticker::before {
+  background: linear-gradient(145deg, #2a2d3b, #323646);
+  box-shadow: 5px 5px 10px #21242e, -5px -5px 10px #3d4154;
+}
+.ticker::after {
+  background: #e0e0e0;
+  box-shadow: 5px 5px 10px #bebebe, -5px -5px 10px #ffffff;
+}
+[data-theme=dark] .ticker::before {
+  opacity: 1;
+}
+[data-theme=dark] .ticker::after {
+  opacity: 0;
+}
+[data-theme=light] .ticker::before {
+  opacity: 0;
+}
+[data-theme=light] .ticker::after {
+  opacity: 1;
+}
+
+.ticker__number {
+  border-radius: 7px;
+  height: 50px;
+  width: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  transition: color 400ms;
+}
+[data-theme=dark] .ticker__number {
+  color: #e0e0e0;
+}
+[data-theme=light] .ticker__number {
+  color: #938a8a;
+}
+</style>
+
+  <script>
+  window.console = window.console || function(t) {};
+</script>
+
+  
+  
+  <script>
+  if (document.location.search.match(/type=embed/gi)) {
+    window.parent.postMessage("resize", "*");
+  }
+</script>
+
+
+</head>
+
+<body translate="no" >
+  <body data-theme="dark">
+  <button class="theme-toggle" data-state="dark">
+    <svg class="theme-toggle__icon --dark" viewbox="0 0 24 24">
+      <path d="M15.77,3.24a10.66,10.66,0,0,0-2.84-1.09,9.84,9.84,0,0,1-.72,14.07,9.84,9.84,0,0,1-8.9,2.32A10,10,0,0,0,18.11,5.19,11,11,0,0,0,15.77,3.24Z"></path>
+    </svg>
+    <svg class="theme-toggle__icon --light" viewbox="0 0 24 24">
+      <path d="M3.55,18.54L4.96,19.95L6.76,18.16L5.34,16.74M11,22.45C11.32,22.45 13,22.45 13,22.45V19.5H11M12,5.5A6,6 0 0,0 6,11.5A6,6 0 0,0 12,17.5A6,6 0 0,0 18,11.5C18,8.18 15.31,5.5 12,5.5M20,12.5H23V10.5H20M17.24,18.16L19.04,19.95L20.45,18.54L18.66,16.74M20.45,4.46L19.04,3.05L17.24,4.84L18.66,6.26M13,0.55H11V3.5H13M4,10.5H1V12.5H4M6.76,4.84L4.96,3.05L3.55,4.46L5.34,6.26L6.76,4.84Z"></path>
+    </svg>
+  </button>
+  <div class="ticker__block --hr">
+    <div class="ticker__box">
+      <div class="ticker">
+        <p class="ticker__number">0</p>
+        <p class="ticker__number">1</p>
+        <p class="ticker__number">2</p>
+      </div>
+    </div>
+    <div class="ticker__box">
+      <div class="ticker">
+        <p class="ticker__number">0</p>
+        <p class="ticker__number">1</p>
+        <p class="ticker__number">2</p>
+        <p class="ticker__number">3</p>
+        <p class="ticker__number">4</p>
+        <p class="ticker__number">5</p>
+        <p class="ticker__number">6</p>
+        <p class="ticker__number">7</p>
+        <p class="ticker__number">8</p>
+        <p class="ticker__number">9</p>
+      </div>
+    </div>
+  </div>
+  <div class="ticker__block --min">
+    <div class="ticker__box">
+      <div class="ticker">
+        <p class="ticker__number">0</p>
+        <p class="ticker__number">1</p>
+        <p class="ticker__number">2</p>
+        <p class="ticker__number">3</p>
+        <p class="ticker__number">4</p>
+        <p class="ticker__number">5</p>
+      </div>
+    </div>
+    <div class="ticker__box">
+      <div class="ticker">
+        <p class="ticker__number">0</p>
+        <p class="ticker__number">1</p>
+        <p class="ticker__number">2</p>
+        <p class="ticker__number">3</p>
+        <p class="ticker__number">4</p>
+        <p class="ticker__number">5</p>
+        <p class="ticker__number">6</p>
+        <p class="ticker__number">7</p>
+        <p class="ticker__number">8</p>
+        <p class="ticker__number">9</p>
+      </div>
+    </div>
+  </div>
+  <div class="ticker__block --sec">
+    <div class="ticker__box">
+      <div class="ticker">
+        <p class="ticker__number">0</p>
+        <p class="ticker__number">1</p>
+        <p class="ticker__number">2</p>
+        <p class="ticker__number">3</p>
+        <p class="ticker__number">4</p>
+        <p class="ticker__number">5</p>
+      </div>
+    </div>
+    <div class="ticker__box">
+      <div class="ticker">
+        <p class="ticker__number">0</p>
+        <p class="ticker__number">1</p>
+        <p class="ticker__number">2</p>
+        <p class="ticker__number">3</p>
+        <p class="ticker__number">4</p>
+        <p class="ticker__number">5</p>
+        <p class="ticker__number">6</p>
+        <p class="ticker__number">7</p>
+        <p class="ticker__number">8</p>
+        <p class="ticker__number">9</p>
+      </div>
+    </div>
+  </div>
+</body>
+    <script src="https://cpwebassets.codepen.io/assets/common/stopExecutionOnTimeout-1b93190375e9ccc259df3a57c1abc0e64599724ae30d7ea4c6877eb615f89387.js"></script>
+
+  
+      <script id="rendered-js" >
+const themeToggle = document.querySelector(".theme-toggle");
+const body = document.querySelector("body");
+
+themeToggle.addEventListener("click", e => {
+  themeToggle.dataset.state === "dark" ?
+  (themeToggle.dataset.state = "light") && (body.dataset.theme = "light") :
+  (themeToggle.dataset.state = "dark") && (body.dataset.theme = "dark");
+});
+
+function leadZero(i) {
+  if (i < 10) {
+    i = "0" + i;
+  }
+  return i;
+}
+
+setInterval(() => {
+  const currentDate = new Date();
+  const hr = leadZero(currentDate.getHours());
+  const hrArr = ("" + hr).split("").map(Number);
+  const min = leadZero(currentDate.getMinutes());
+  const minArr = ("" + min).split("").map(Number);
+  const sec = leadZero(currentDate.getSeconds());
+  const secArr = ("" + sec).split("").map(Number);
+
+  const time = `${hr}${min}${sec}`;
+
+  const tickerBoxes = document.querySelectorAll(".ticker__box");
+
+  tickerBoxes.forEach((tickerBox, i) => {
+    switch (i) {
+      case 0:
+        tickerBox.style.cssText = `--offset: -${hrArr[0] * 50}px`;
+        break;
+
+      case 1:
+        tickerBox.style.cssText = `--offset: -${hrArr[1] * 50}px`;
+        break;
+
+      case 2:
+        tickerBox.style.cssText = `--offset: -${minArr[0] * 50}px`;
+        break;
+
+      case 3:
+        tickerBox.style.cssText = `--offset: -${minArr[1] * 50}px`;
+        break;
+
+      case 4:
+        tickerBox.style.cssText = `--offset: -${secArr[0] * 50}px`;
+        break;
+
+      case 5:
+        tickerBox.style.cssText = `--offset: -${secArr[1] * 50}px`;
+        break;}
+
+  });
+}, 1000);
+//# sourceURL=pen.js
+    </script>
+
+  
+
+</body>
+
+</html>
